@@ -1,0 +1,516 @@
+BEGIN
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE EVALUACIONES_DESEMPENO CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE TAREAS_PERSONAL CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE PERSONAL_PROYECTOS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE EXPERIENCIA_LABORAL CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE GRADOS_ACADEMICOS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE ESPECIALIDADES_PERSONAL CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE CARGOS_AREAS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE DOCUMENTOS_PROVEEDOR CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE ACTIVIDADES_PROVEEDOR CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE CONTRATOS_PROVEEDOR CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE SERVICIOS_PROVEEDOR CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE COMP_PAGOCAB CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE PROYECTO CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE EMPLEADO CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE PROVEEDOR CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE CLIENTE CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE PERSONA CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE ELEMENTOS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE TABS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE AREAS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE USUARIOS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+    
+    BEGIN EXECUTE IMMEDIATE 'DROP TABLE CIA CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;
+END;
+/
+
+CREATE TABLE CIA (
+    CodCIA NUMBER(6) NOT NULL,
+    DesCia VARCHAR2(100) NOT NULL,
+    DesCorta VARCHAR2(20) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT CIA_PK PRIMARY KEY (CodCIA)
+);
+
+CREATE TABLE TABS (
+    CodTab VARCHAR2(3) NOT NULL,
+    DenTab VARCHAR2(50) NOT NULL,
+    DenCorta VARCHAR2(10) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT TABS_PK PRIMARY KEY (CodTab)
+);
+
+CREATE TABLE ELEMENTOS (
+    CodTab VARCHAR2(3) NOT NULL,
+    CodElem VARCHAR2(3) NOT NULL,
+    DenEle VARCHAR2(50) NOT NULL,
+    DenCorta VARCHAR2(10) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT ELEMENTOS_PK PRIMARY KEY (CodTab, CodElem),
+    CONSTRAINT ELEMENTOS_TABS_FK FOREIGN KEY (CodTab) REFERENCES TABS (CodTab)
+);
+
+CREATE TABLE PERSONA (
+    CodCIA NUMBER(6) NOT NULL,
+    CodPersona NUMBER(6) NOT NULL,
+    TipPersona VARCHAR2(1) NOT NULL,
+    DesPersona VARCHAR2(100) NOT NULL,
+    DesCorta VARCHAR2(30) NOT NULL,
+    DescAlterna VARCHAR2(100) NOT NULL,
+    DesCortaAlt VARCHAR2(10) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT CIA_PERSONA_PK PRIMARY KEY (CodCIA, CodPersona),
+    CONSTRAINT PERSONA_EMPRESA_VTA_FK FOREIGN KEY (CodCIA) REFERENCES CIA (CodCIA)
+);
+
+CREATE TABLE usuarios (
+    CodCIA NUMBER(6) NOT NULL,
+    CodUsuario NUMBER(6) NOT NULL,
+    username VARCHAR2(50) UNIQUE NOT NULL,
+    password_hash VARCHAR2(200) NOT NULL,
+    tipo_usuario VARCHAR2(15) CHECK (tipo_usuario IN ('ADMINISTRADOR', 'SECRETARIA')) NOT NULL,
+    CONSTRAINT usuarios_PK PRIMARY KEY (CodCIA, CodUsuario),
+    CONSTRAINT fk_usuario_cia FOREIGN KEY (CodCIA) REFERENCES CIA(CodCIA)
+);
+
+CREATE TABLE areas (
+    CodCIA NUMBER(6) NOT NULL,
+    CodArea NUMBER(6) NOT NULL,
+    nombre VARCHAR2(100) NOT NULL,
+    descripcion VARCHAR2(300),
+    estado CHAR(1) DEFAULT 'A' CHECK (estado IN ('A', 'I')),
+    CONSTRAINT areas_PK PRIMARY KEY (CodCIA, CodArea),
+    CONSTRAINT fk_area_cia FOREIGN KEY (CodCIA) REFERENCES CIA(CodCIA)
+);
+
+CREATE TABLE EMPLEADO (
+    CodCIA NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    Direcc VARCHAR2(100) NOT NULL,
+    Celular VARCHAR2(33) NOT NULL,
+    Hobby VARCHAR2(2000) NOT NULL,
+    Foto BLOB,
+    FecNac DATE NOT NULL,
+    DNI VARCHAR2(20) NOT NULL,
+    NroCIP VARCHAR2(10) NOT NULL,
+    FecCIPVig DATE NOT NULL,
+    LicCond VARCHAR2(1) NOT NULL,
+    FlgEmplIEA VARCHAR2(1) NOT NULL,
+    Observac VARCHAR2(300) NOT NULL,
+    CodCargo NUMBER(4) NOT NULL,
+    Email VARCHAR2(100) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT EMPLEADO_PK PRIMARY KEY (CodCIA, CodEmpleado),
+    CONSTRAINT PERSONA_EMPLEADO_FK FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES PERSONA (CodCIA, CodPersona)
+);
+
+CREATE TABLE CLIENTE (
+    CodCIA NUMBER(6) NOT NULL,
+    CodCliente NUMBER(6) NOT NULL,
+    NroRuc VARCHAR2(20) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT CLIENTE_PK PRIMARY KEY (CodCIA, CodCliente),
+    CONSTRAINT PERSONA_CLIENTE_FK FOREIGN KEY (CodCIA, CodCliente) REFERENCES PERSONA (CodCIA, CodPersona)
+);
+
+CREATE TABLE PROYECTO (
+    CodCIA NUMBER(6) NOT NULL,
+    CodPyto NUMBER(6) NOT NULL,
+    NombPyto VARCHAR2(1000) NOT NULL,
+    EmplJefeProy NUMBER(6) NOT NULL,
+    CodCIA1 NUMBER(6) NOT NULL,
+    CiaContrata NUMBER(6) NOT NULL,
+    CodCC NUMBER(6) NOT NULL,
+    CodCliente NUMBER(6) NOT NULL,
+    FlgEmpConsorcio VARCHAR2(1) NOT NULL,
+    CodSNIP VARCHAR2(10) NOT NULL,
+    FecReg DATE NOT NULL,
+    CodFase NUMBER(1) NOT NULL,
+    CodNivel NUMBER(2) NOT NULL,
+    CodFuncion VARCHAR2(4) NOT NULL,
+    CodSituacion NUMBER(2) NOT NULL,
+    NumInfor NUMBER(1) NOT NULL,
+    NumInforEntrg NUMBER(1) NOT NULL,
+    EstPyto NUMBER(2) NOT NULL,
+    FecEstado DATE NOT NULL,
+    ValRefer NUMBER(12,2) NOT NULL,
+    CostoDirecto NUMBER(12,2) NOT NULL,
+    CostoGGen NUMBER(12,2) NOT NULL,
+    CostoFinan NUMBER(12,2) NOT NULL,
+    ImpUtilidad NUMBER(12,2) NOT NULL,
+    CostoTotSinIGV NUMBER(12,2) NOT NULL,
+    ImpIGV NUMBER(12,2) NOT NULL,
+    CostoTotal NUMBER(12,2) NOT NULL,
+    CostoPenalid NUMBER(12,2) NOT NULL,
+    CodDpto VARCHAR2(2) NOT NULL,
+    CodProv VARCHAR2(2) NOT NULL,
+    CodDist VARCHAR2(2) NOT NULL,
+    FecViab DATE NOT NULL,
+    RutaDoc VARCHAR2(300) NOT NULL,
+    AnnoIni NUMBER(4) NOT NULL,
+    AnnoFin NUMBER(4) NOT NULL,
+    CodObjC NUMBER(2) NOT NULL,
+    LogoProy BLOB,
+    TabEstado VARCHAR2(3) NOT NULL,
+    CodEstado VARCHAR2(3) NOT NULL,
+    Observac VARCHAR2(500) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT PROYECTO_PK PRIMARY KEY (CodCIA, CodPyto),
+    CONSTRAINT CIA_PROYECTO_FK FOREIGN KEY (CodCIA) REFERENCES CIA (CodCIA),
+    CONSTRAINT EMPLEADO_PROYECTO_FK FOREIGN KEY (CodCIA, EmplJefeProy) REFERENCES EMPLEADO (CodCIA, CodEmpleado),
+    CONSTRAINT CLIENTE_PROYECTO_FK FOREIGN KEY (CodCIA, CodCliente) REFERENCES CLIENTE (CodCIA, CodCliente)
+);
+
+CREATE TABLE especialidades_personal (
+    CodCIA NUMBER(6) NOT NULL,
+    CodEspecialidad NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    especialidad VARCHAR2(100) NOT NULL,
+    certificado BLOB,
+    institucion VARCHAR2(200),
+    fecha_obtencion DATE,
+    horas_capacitacion NUMBER(6,2),
+    CONSTRAINT pk_esp_empleado PRIMARY KEY (CodCIA, CodEspecialidad, CodEmpleado),
+    CONSTRAINT fk_esp_empleado FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO(CodCIA, CodEmpleado) ON DELETE CASCADE
+);
+
+CREATE TABLE grados_academicos (
+    CodCIA NUMBER(6) NOT NULL,
+    CodGrado NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    tipo_grado VARCHAR2(50) CHECK (tipo_grado IN ('BACHILLER', 'LICENCIATURA', 'MAESTRIA', 'DOCTORADO', 'TECNICO')),
+    carrera VARCHAR2(100) NOT NULL,
+    titulo VARCHAR2(200) NOT NULL,
+    institucion VARCHAR2(200) NOT NULL,
+    fecha_obtencion DATE,
+    documento BLOB,
+    CONSTRAINT pk_grado_empleado PRIMARY KEY (CodCIA, CodGrado, CodEmpleado),
+    CONSTRAINT fk_grado_empleado FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO(CodCIA, CodEmpleado) ON DELETE CASCADE
+);
+
+CREATE TABLE experiencia_laboral (
+    CodCIA NUMBER(6) NOT NULL,
+    CodExperiencia NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    empresa VARCHAR2(200) NOT NULL,
+    especialidad VARCHAR2(100),
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    certificado BLOB,
+    CONSTRAINT pk_exp_empleado PRIMARY KEY (CodCIA, CodExperiencia, CodEmpleado),
+    CONSTRAINT fk_exp_empleado FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO(CodCIA, CodEmpleado) ON DELETE CASCADE
+);
+
+CREATE TABLE cargos_areas (
+    CodCargo NUMBER(6) NOT NULL,
+    CodArea NUMBER(6) NOT NULL,
+    CodCIA NUMBER(6) NOT NULL,
+    nombre_cargo VARCHAR2(100) NOT NULL,
+    CONSTRAINT cargos_areas_PK PRIMARY KEY (CodCargo, CodArea, CodCIA),
+    CONSTRAINT fk_cargo_area FOREIGN KEY (CodCIA, CodArea) REFERENCES areas(CodCIA, CodArea) ON DELETE CASCADE,
+    CONSTRAINT fk_cargo_cia FOREIGN KEY (CodCIA) REFERENCES CIA(CodCIA)
+);
+
+CREATE TABLE personal_proyectos (
+    CodCIA NUMBER(6) NOT NULL,
+    CodPersonalProyecto NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    CodPyto NUMBER(6) NOT NULL,
+    CodCargo NUMBER(6) NOT NULL,
+    CodArea NUMBER(6) NOT NULL,
+    fecha_asignacion DATE DEFAULT SYSDATE,
+    fecha_desasignacion DATE,
+    horas_asignadas NUMBER(5,2),
+    CONSTRAINT pk_pp_empleado PRIMARY KEY (CodCIA, CodPersonalProyecto, CodEmpleado),
+    CONSTRAINT fk_pp_empleado FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO(CodCIA, CodEmpleado) ON DELETE CASCADE,
+    CONSTRAINT fk_pp_proyecto FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO(CodCIA, CodPyto) ON DELETE CASCADE,
+    CONSTRAINT fk_pp_cargo FOREIGN KEY (CodCargo, CodArea, CodCIA) REFERENCES cargos_areas(CodCargo, CodArea, CodCIA) ON DELETE CASCADE,
+    CONSTRAINT fk_pp_area FOREIGN KEY (CodCIA, CodArea) REFERENCES areas(CodCIA, CodArea) ON DELETE CASCADE,
+    CONSTRAINT uk_empleado_proyecto UNIQUE (CodCIA, CodEmpleado, CodPyto, fecha_asignacion)
+);
+
+CREATE TABLE tareas_personal (
+    CodCIA NUMBER(6) NOT NULL,
+    CodTarea  NUMBER(6) NOT NULL,
+    CodPyto NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6),
+    nombre VARCHAR2(200) NOT NULL,
+    descripcion CLOB,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR2(20) DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'EN_PROGRESO', 'COMPLETADA', 'CANCELADA')),
+    CONSTRAINT tareas_personal_PK PRIMARY KEY (CodCIA, CodTarea, CodPyto, CodEmpleado),
+    CONSTRAINT fk_tarea_proyecto FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO(CodCIA, CodPyto) ON DELETE CASCADE,
+    CONSTRAINT fk_tarea_empleado FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO(CodCIA, CodEmpleado)
+);
+
+CREATE TABLE evaluaciones_desempeno (
+    CodCIA NUMBER(6) NOT NULL,
+    CodEvaluacion NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    CodPyto NUMBER(6),
+    evaluador_id NUMBER NOT NULL,
+    puntuacion_total NUMBER(4,2) CHECK (puntuacion_total >= 0 AND puntuacion_total <= 100),
+    competencias_tecnicas NUMBER(4,2),
+    competencias_blandas NUMBER(4,2),
+    cumplimiento_objetivos NUMBER(4,2),
+    CONSTRAINT evaluaciones_desempeno_PK PRIMARY KEY (CodCIA, CodEvaluacion, CodEmpleado, CodPyto),
+    CONSTRAINT fk_eval_empleado FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO(CodCIA, CodEmpleado),
+    CONSTRAINT fk_eval_proyecto FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO(CodCIA, CodPyto),
+    CONSTRAINT fk_eval_evaluador FOREIGN KEY (CodCIA, evaluador_id) REFERENCES EMPLEADO(CodCIA, CodEmpleado)
+);
+
+CREATE TABLE PROVEEDOR (
+    CodCIA NUMBER(6) NOT NULL,
+    CodProveedor NUMBER(6) NOT NULL,
+    NroRuc VARCHAR2(20) NOT NULL,
+    Vigente VARCHAR2(1) NOT NULL,
+    CONSTRAINT PROVEEDOR_PK PRIMARY KEY (CodCIA, CodProveedor),
+    CONSTRAINT PERSONA_PROVEEDOR_FK FOREIGN KEY (CodCIA, CodProveedor) REFERENCES PERSONA (CodCIA, CodPersona)
+);
+
+CREATE TABLE servicios_proveedor (
+    CodCIA NUMBER(6) NOT NULL,
+    CodServicio NUMBER(6) NOT NULL,
+    CodProveedor NUMBER(6) NOT NULL,
+    nombre_servicio VARCHAR2(200) NOT NULL,
+    descripcion CLOB,
+    documento_servicio BLOB,
+    CONSTRAINT pk_servicio_proveedor PRIMARY KEY (CodCIA, CodServicio, CodProveedor),
+    CONSTRAINT fk_servicio_proveedor FOREIGN KEY (CodCIA, CodProveedor) REFERENCES PROVEEDOR(CodCIA, CodProveedor) ON DELETE CASCADE
+);
+
+CREATE TABLE contratos_proveedor (
+    CodCIA NUMBER(6) NOT NULL,
+    CodContrato NUMBER(6) NOT NULL,
+    CodProveedor NUMBER(6) NOT NULL,
+    CodPyto NUMBER(6),
+    numero_contrato VARCHAR2(50) UNIQUE NOT NULL,
+    tipo_contrato VARCHAR2(50) CHECK (tipo_contrato IN ('SERVICIOS', 'SUMINISTROS', 'OBRAS', 'CONSULTORIA')),
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    monto_total NUMBER(15,2) NOT NULL,
+    moneda VARCHAR2(3) DEFAULT 'PEN',
+    documento_contrato BLOB,
+    CONSTRAINT contratos_proveedor_PK PRIMARY KEY (CodCIA, CodContrato, CodProveedor, CodPyto),
+    CONSTRAINT fk_contrato_proveedor FOREIGN KEY (CodCIA, CodProveedor) REFERENCES PROVEEDOR(CodCIA, CodProveedor),
+    CONSTRAINT fk_contrato_proyecto FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO(CodCIA, CodPyto)
+);
+
+CREATE TABLE actividades_proveedor (
+    CodCIA NUMBER(6) NOT NULL,
+    CodActividad NUMBER(6) NOT NULL,
+    CodProveedor NUMBER(6) NOT NULL,
+    CodPyto NUMBER(6),
+    CodContrato NUMBER(6),
+    descripcion VARCHAR2(500) NOT NULL,
+    fecha_actividad DATE DEFAULT SYSDATE,
+    monto NUMBER(12,2),
+    estado VARCHAR2(20) DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'EN_PROGRESO', 'COMPLETADA', 'CANCELADA')),
+    documento BLOB,
+    observaciones VARCHAR2(1000),
+    CONSTRAINT actividades_proveedor_PK PRIMARY KEY (CodCIA, CodActividad, CodProveedor, CodPyto, CodContrato),
+    CONSTRAINT fk_actividad_proveedor FOREIGN KEY (CodCIA, CodProveedor) REFERENCES PROVEEDOR(CodCIA, CodProveedor) ON DELETE CASCADE,
+    CONSTRAINT fk_actividad_proyecto FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO(CodCIA, CodPyto),
+    CONSTRAINT fk_actividad_contrato FOREIGN KEY (CodCIA, CodContrato, CodProveedor, CodPyto) REFERENCES contratos_proveedor(CodCIA, CodContrato, CodProveedor, CodPyto)
+);
+
+CREATE TABLE documentos_proveedor (
+    CodCIA NUMBER(6) NOT NULL,
+    CodDocumento NUMBER(6) NOT NULL,
+    CodProveedor NUMBER(6) NOT NULL,
+    tipo_documento VARCHAR2(50) CHECK (tipo_documento IN ('RUC', 'LICENCIA', 'CERTIFICACION', 'SEGURO', 'OTRO')),
+    numero_documento VARCHAR2(100),
+    archivo BLOB NOT NULL,
+    tipo_archivo VARCHAR2(10) CHECK (tipo_archivo IN ('PDF', 'JPG', 'PNG', 'JPEG')),
+    fecha_emision DATE,
+    fecha_vencimiento DATE,
+    CONSTRAINT documentos_proveedor_PK PRIMARY KEY (CodCIA, CodDocumento, CodProveedor),
+    CONSTRAINT fk_doc_proveedor FOREIGN KEY (CodCIA, CodProveedor) REFERENCES PROVEEDOR(CodCIA, CodProveedor) ON DELETE CASCADE
+);
+
+CREATE TABLE COMP_PAGOCAB (
+    CodCIA NUMBER(6) NOT NULL,
+    CodProveedor NUMBER(6) NOT NULL,
+    NroCP VARCHAR2(20) NOT NULL,
+    CodPyto NUMBER(6) NOT NULL,
+    NroPago NUMBER(3) NOT NULL,
+    TCompPago VARCHAR2(3) NOT NULL,
+    ECompPago VARCHAR2(3) NOT NULL,
+    FecCP DATE NOT NULL,
+    TMoneda VARCHAR2(3) NOT NULL,
+    EMoneda VARCHAR2(3) NOT NULL,
+    TipCambio NUMBER(7,4) NOT NULL,
+    ImpMO NUMBER(9,2) NOT NULL,
+    ImpNetoMN NUMBER(9,2) NOT NULL,
+    ImpIGVMN NUMBER(9,2) NOT NULL,
+    ImpTotalMn NUMBER(10,2) NOT NULL,
+    FotoCP VARCHAR2(60) NOT NULL,
+    FotoAbono VARCHAR2(60) NOT NULL,
+    FecAbono DATE NOT NULL,
+    DesAbono VARCHAR2(1000) NOT NULL,
+    Semilla NUMBER(5) NOT NULL,
+    TabEstado VARCHAR2(3) NOT NULL,
+    CodEstado VARCHAR2(3) NOT NULL,
+    CONSTRAINT COMP_PAGOCAB_PK PRIMARY KEY (CodCIA, CodProveedor, NroCP),
+    CONSTRAINT COMP_PAGOCAB_PROVEEDOR_FK FOREIGN KEY (CodCIA, CodProveedor) REFERENCES PROVEEDOR (CodCIA, CodProveedor),
+    CONSTRAINT COMP_PAGOCAB_ELEMENTOS_FK FOREIGN KEY (TMoneda, EMoneda) REFERENCES ELEMENTOS (CodTab, CodElem),
+    CONSTRAINT COMP_PAGOCAB_ELEMENTOS_2_FK FOREIGN KEY (TCompPago, ECompPago) REFERENCES ELEMENTOS (CodTab, CodElem),
+    CONSTRAINT COMP_PAGOCAB_PROYECTO_FK FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO (CodCIA, CodPyto)
+);
+
+CREATE TABLE COMP_PAGOEMPLEADO (
+    CodCIA NUMBER(6) NOT NULL,
+    CodEmpleado NUMBER(6) NOT NULL,
+    NroCP VARCHAR2(20) NOT NULL,
+    CodPyto NUMBER(6) NOT NULL,
+    NroPago NUMBER(3) NOT NULL,
+    TCompPago VARCHAR2(3) NOT NULL,
+    ECompPago VARCHAR2(3) NOT NULL,
+    FecCP DATE NOT NULL,
+    TMoneda VARCHAR2(3) NOT NULL,
+    EMoneda VARCHAR2(3) NOT NULL,
+    TipCambio NUMBER(7,4) NOT NULL,
+    ImpMO NUMBER(9,2) NOT NULL,
+    ImpNetoMN NUMBER(9,2) NOT NULL,
+    ImpIGVMN NUMBER(9,2) NOT NULL,
+    ImpTotalMn NUMBER(10,2) NOT NULL,
+    FotoCP VARCHAR2(60) NOT NULL,
+    FotoAbono VARCHAR2(60) NOT NULL,
+    FecAbono DATE NOT NULL,
+    DesAbono VARCHAR2(1000) NOT NULL,
+    Semilla NUMBER(5) NOT NULL,
+    TabEstado VARCHAR2(3) NOT NULL,
+    CodEstado VARCHAR2(3) NOT NULL,
+    CONSTRAINT COMP_PAGOEMPLEADO_PK PRIMARY KEY (CodCIA, CodEmpleado, NroCP),
+    CONSTRAINT COMP_PAGOEMPLEADO_EMPLEADO_FK FOREIGN KEY (CodCIA, CodEmpleado) REFERENCES EMPLEADO (CodCIA, CodEmpleado),
+    CONSTRAINT COMP_PAGOEMPLEADO_ELEMENTOS_FK FOREIGN KEY (TMoneda, EMoneda) REFERENCES ELEMENTOS (CodTab, CodElem),
+    CONSTRAINT COMP_PAGOEMPLEADO_ELEMENTOS_2_FK FOREIGN KEY (TCompPago, ECompPago) REFERENCES ELEMENTOS (CodTab, CodElem),
+    CONSTRAINT COMP_PAGOEMPLEADO_PROYECTO_FK FOREIGN KEY (CodCIA, CodPyto) REFERENCES PROYECTO (CodCIA, CodPyto)
+);
+
+CREATE INDEX idx_empleado_dni ON EMPLEADO(DNI);
+CREATE INDEX idx_empleado_email ON EMPLEADO(Email);
+CREATE INDEX idx_empleado_cargo ON EMPLEADO(CodCargo);
+CREATE INDEX idx_empleado_vigente ON EMPLEADO(Vigente);
+
+CREATE INDEX idx_proveedor_ruc ON PROVEEDOR(NroRuc);
+CREATE INDEX idx_proveedor_vigente ON PROVEEDOR(Vigente);
+
+CREATE INDEX idx_proyecto_jefe ON PROYECTO(EmplJefeProy);
+CREATE INDEX idx_proyecto_cliente ON PROYECTO(CodCliente);
+CREATE INDEX idx_proyecto_vigente ON PROYECTO(Vigente);
+CREATE INDEX idx_proyecto_estado ON PROYECTO(EstPyto);
+
+CREATE INDEX idx_comp_pago_fecha ON COMP_PAGOCAB(FecCP);
+CREATE INDEX idx_comp_pago_estado ON COMP_PAGOCAB(CodEstado);
+CREATE INDEX idx_comp_pago_proveedor ON COMP_PAGOCAB(CodProveedor);
+
+CREATE INDEX idx_comp_pagoemp_fecha ON COMP_PAGOEMPLEADO(FecCP);
+CREATE INDEX idx_comp_pagoemp_estado ON COMP_PAGOEMPLEADO(CodEstado);
+CREATE INDEX idx_comp_pagoemp_empleado ON COMP_PAGOEMPLEADO(CodEmpleado);
+
+CREATE INDEX idx_persona_tipo ON PERSONA(TipPersona);
+CREATE INDEX idx_persona_vigente ON PERSONA(Vigente);
+
+INSERT INTO TABS VALUES ('001', 'Unidad de medida', 'Umed', '1');
+INSERT INTO TABS VALUES ('002', 'Moneda', 'Mon', '1');
+INSERT INTO TABS VALUES ('003', 'Tipo Documento', 'TipDoc', '1');
+INSERT INTO TABS VALUES ('004', 'Comprobante de Pago', 'CompPago', '1');
+INSERT INTO TABS VALUES ('005', 'Estado Civil', 'EstCivil', '1');
+
+INSERT INTO ELEMENTOS VALUES ('001', '001', 'Unidad', 'UNI', '1');
+INSERT INTO ELEMENTOS VALUES ('001', '002', 'Kilogramo', 'Kg', '1');
+INSERT INTO ELEMENTOS VALUES ('001', '003', 'Metro', 'M', '1');
+INSERT INTO ELEMENTOS VALUES ('001', '004', 'Horas', 'Hrs', '1');
+
+INSERT INTO ELEMENTOS VALUES ('002', '001', 'Soles', 'S/', '1');
+INSERT INTO ELEMENTOS VALUES ('002', '002', 'Dólares', 'USD', '1');
+INSERT INTO ELEMENTOS VALUES ('002', '003', 'Euros', 'EUR', '1');
+
+INSERT INTO ELEMENTOS VALUES ('003', '001', 'DNI', 'DNI', '1');
+INSERT INTO ELEMENTOS VALUES ('003', '002', 'RUC', 'RUC', '1');
+INSERT INTO ELEMENTOS VALUES ('003', '003', 'Pasaporte', 'PASS', '1');
+
+INSERT INTO ELEMENTOS VALUES ('004', '001', 'Factura', 'Fact', '1');
+INSERT INTO ELEMENTOS VALUES ('004', '002', 'Recibo por Honorarios', 'RxH', '1');
+INSERT INTO ELEMENTOS VALUES ('004', '003', 'Voucher', 'Vou', '1');
+
+INSERT INTO ELEMENTOS VALUES ('005', '001', 'Soltero', 'SOL', '1');
+INSERT INTO ELEMENTOS VALUES ('005', '002', 'Casado', 'CAS', '1');
+INSERT INTO ELEMENTOS VALUES ('005', '003', 'Divorciado', 'DIV', '1');
+INSERT INTO ELEMENTOS VALUES ('005', '004', 'Viudo', 'VIU', '1');
+
+CREATE SEQUENCE SEC_CIA
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    MAXVALUE 999999
+    NOCYCLE
+    CACHE 20;
+
+CREATE SEQUENCE SEC_PERSONA
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    MAXVALUE 999999
+    NOCYCLE
+    CACHE 20;
+
+CREATE INDEX idx_especialidades_empleado ON especialidades_personal(CodCIA, CodEmpleado);
+CREATE INDEX idx_grados_empleado ON grados_academicos(CodCIA, CodEmpleado);
+CREATE INDEX idx_experiencia_empleado ON experiencia_laboral(CodCIA, CodEmpleado);
+CREATE INDEX idx_personal_proyecto ON personal_proyectos(CodCIA, CodEmpleado, CodPyto);
+CREATE INDEX idx_tareas_proyecto ON tareas_personal(CodCIA, CodPyto);
+CREATE INDEX idx_tareas_empleado ON tareas_personal(CodCIA, CodEmpleado);
+CREATE INDEX idx_evaluaciones_empleado ON evaluaciones_desempeno(CodCIA, CodEmpleado);
+
+CREATE INDEX idx_servicios_proveedor ON servicios_proveedor(CodCIA, CodProveedor);
+CREATE INDEX idx_contratos_proveedor ON contratos_proveedor(CodCIA, CodProveedor);
+CREATE INDEX idx_actividades_proveedor ON actividades_proveedor(CodCIA, CodProveedor);
+CREATE INDEX idx_documentos_proveedor ON documentos_proveedor(CodCIA, CodProveedor);
+
+CREATE INDEX idx_contratos_fechas ON contratos_proveedor(fecha_inicio, fecha_fin);
+CREATE INDEX idx_tareas_fechas ON tareas_personal(fecha_inicio, fecha_fin);
+
+COMMENT ON TABLE CIA IS 'Información de la empresa u organización principal';
+COMMENT ON TABLE PERSONA IS 'Entidad base para personas físicas y jurídicas';
+COMMENT ON TABLE EMPLEADO IS 'Información completa del personal de la organización';
+COMMENT ON TABLE PROVEEDOR IS 'Información de proveedores externos';
+COMMENT ON TABLE CLIENTE IS 'Información de clientes';
+COMMENT ON TABLE PROYECTO IS 'Gestión de proyectos de la organización con control financiero';
+COMMENT ON TABLE COMP_PAGOCAB IS 'Comprobantes de pago - información de cabecera';
+COMMENT ON TABLE TABS IS 'Catálogos de configuración del sistema';
+COMMENT ON TABLE ELEMENTOS IS 'Elementos de los catálogos de configuración';
+COMMENT ON TABLE USUARIOS IS 'Usuarios del sistema con autenticación';
+COMMENT ON TABLE AREAS IS 'Áreas organizacionales de la empresa';
+COMMENT ON TABLE CARGOS_AREAS IS 'Cargos específicos por área organizacional';
+COMMENT ON TABLE ESPECIALIDADES_PERSONAL IS 'Especialidades técnicas del personal';
+COMMENT ON TABLE GRADOS_ACADEMICOS IS 'Formación académica del personal';
+COMMENT ON TABLE EXPERIENCIA_LABORAL IS 'Historial laboral del personal';
+COMMENT ON TABLE PERSONAL_PROYECTOS IS 'Asignación de empleados a proyectos';
+COMMENT ON TABLE TAREAS_PERSONAL IS 'Tareas específicas asignadas al personal';
+COMMENT ON TABLE EVALUACIONES_DESEMPENO IS 'Evaluaciones de rendimiento del personal';
+COMMENT ON TABLE SERVICIOS_PROVEEDOR IS 'Catálogo de servicios ofrecidos por proveedores';
+COMMENT ON TABLE CONTRATOS_PROVEEDOR IS 'Contratos establecidos con proveedores';
+COMMENT ON TABLE ACTIVIDADES_PROVEEDOR IS 'Actividades realizadas por proveedores';
+COMMENT ON TABLE DOCUMENTOS_PROVEEDOR IS 'Documentación legal y técnica de proveedores';
+
+COMMIT;
+
+SELECT 'ESQUEMA HÍBRIDO COMPLETO CREADO EXITOSAMENTE' as MENSAJE,
+       COUNT(*) as TOTAL_TABLAS
+FROM user_tables 
+WHERE table_name IN (
+    'CIA', 'PERSONA', 'EMPLEADO', 'PROVEEDOR', 'CLIENTE', 
+    'PROYECTO', 'COMP_PAGOCAB', 'TABS', 'ELEMENTOS',
+    'USUARIOS', 'AREAS', 'CARGOS_AREAS', 'ESPECIALIDADES_PERSONAL', 
+    'GRADOS_ACADEMICOS', 'EXPERIENCIA_LABORAL', 'PERSONAL_PROYECTOS', 
+    'TAREAS_PERSONAL', 'EVALUACIONES_DESEMPENO', 'SERVICIOS_PROVEEDOR',
+    'CONTRATOS_PROVEEDOR', 'ACTIVIDADES_PROVEEDOR', 'DOCUMENTOS_PROVEEDOR'
+);
